@@ -2,16 +2,39 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+    const router = useRouter();
     const [role, setRole] = useState<"Artist" | "Buyer">("Buyer");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log("Login Details:", { role, email, password });
-        // Handle login logic here
+        setLoading(true);
+
+        try {
+            const res = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password }),
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                router.push("/dashboard");
+            } else {
+                alert(data.message || "Invalid credentials");
+            }
+        } catch (error) {
+            console.error("Login error:", error);
+            alert("An error occurred. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -31,8 +54,8 @@ export default function LoginPage() {
                     <button
                         onClick={() => setRole("Buyer")}
                         className={`flex-1 py-2 text-sm font-medium rounded-md transition-all duration-200 ${role === "Buyer"
-                                ? "bg-cream-50 text-earth-brown-800 shadow-sm"
-                                : "text-earth-brown-600 hover:text-earth-brown-800"
+                            ? "bg-cream-50 text-earth-brown-800 shadow-sm"
+                            : "text-earth-brown-600 hover:text-earth-brown-800"
                             }`}
                     >
                         Buyer
@@ -40,8 +63,8 @@ export default function LoginPage() {
                     <button
                         onClick={() => setRole("Artist")}
                         className={`flex-1 py-2 text-sm font-medium rounded-md transition-all duration-200 ${role === "Artist"
-                                ? "bg-cream-50 text-earth-brown-800 shadow-sm"
-                                : "text-earth-brown-600 hover:text-earth-brown-800"
+                            ? "bg-cream-50 text-earth-brown-800 shadow-sm"
+                            : "text-earth-brown-600 hover:text-earth-brown-800"
                             }`}
                     >
                         Artist
@@ -107,9 +130,10 @@ export default function LoginPage() {
                     <div>
                         <button
                             type="submit"
-                            className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-lg text-cream-50 bg-earth-brown-800 hover:bg-earth-brown-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-earth-brown-600 transition-all duration-200 transform hover:scale-[1.02]"
+                            disabled={loading}
+                            className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-lg text-cream-50 bg-earth-brown-800 hover:bg-earth-brown-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-earth-brown-600 transition-all duration-200 transform hover:scale-[1.02] ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
                         >
-                            Sign in as {role}
+                            {loading ? "Logging in..." : `Sign in as ${role}`}
                         </button>
                     </div>
 
