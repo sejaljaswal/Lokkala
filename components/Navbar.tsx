@@ -49,7 +49,6 @@ const Navbar = () => {
         ...(isAuthenticated
             ? [
                 { name: "Upload Art", href: "/upload" },
-                { name: "Dashboard", href: "/dashboard" },
                 { name: "Profile", href: "/profile" },
             ]
             : []),

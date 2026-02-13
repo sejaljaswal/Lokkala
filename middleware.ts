@@ -6,7 +6,7 @@ export function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
     // Define protected routes
-    const protectedRoutes = ["/dashboard", "/profile", "/upload"];
+    const protectedRoutes = ["/profile", "/upload"];
 
     // If the user is trying to access a protected route and has no token, redirect to login
     if (protectedRoutes.some((route) => pathname.startsWith(route))) {
@@ -16,9 +16,9 @@ export function middleware(request: NextRequest) {
         }
     }
 
-    // If the user has a token and tries to access login or signup, redirect them to dashboard
+    // If the user has a token and tries to access login or signup, redirect them to home
     if (token && (pathname === "/login" || pathname === "/signup")) {
-        const url = new URL("/dashboard", request.url);
+        const url = new URL("/", request.url);
         return NextResponse.redirect(url);
     }
 
@@ -27,5 +27,5 @@ export function middleware(request: NextRequest) {
 
 // See "Matching Paths" below to learn more
 export const config = {
-    matcher: ["/dashboard/:path*", "/profile/:path*", "/upload/:path*", "/login", "/signup"],
+    matcher: ["/profile/:path*", "/upload/:path*", "/login", "/signup"],
 };
