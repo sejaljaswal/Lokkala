@@ -1,53 +1,39 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import ProductCard from "@/components/ProductCard";
 
-const products = [
-    {
-        id: 1,
-        title: "Traditional Warli Canvas",
-        artistName: "Ramesh Varma",
-        price: 1200,
-        image: "/art/warli.png",
-    },
-    {
-        id: 2,
-        title: "Handcrafted Terracotta Vase",
-        artistName: "Sita Devi",
-        price: 850,
-        image: "/art/terracotta.png",
-    },
-    {
-        id: 3,
-        title: "Madhubani Tree of Life",
-        artistName: "Gauri Shankar",
-        price: 3500,
-        image: "/art/madhubani.png",
-    },
-    {
-        id: 4,
-        title: "Dhokra Brass Musician",
-        artistName: "Madan Lal",
-        price: 2200,
-        image: "/art/dhokra.png",
-    },
-    {
-        id: 5,
-        title: "Pattachitra Scroll Art",
-        artistName: "Bibhu Dutta",
-        price: 4500,
-        image: "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?q=80&w=800&auto=format&fit=crop",
-    },
-    {
-        id: 6,
-        title: "Gond Forest Narrative",
-        artistName: "Subhash Vyam",
-        price: 2800,
-        image: "https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?q=80&w=800&auto=format&fit=crop",
-    },
-];
+interface Art {
+    _id: string;
+    title: string;
+    artist: { name: string };
+    price: number;
+    imageUrl: string;
+    category: string;
+}
 
 export default function ShopPage() {
+    const [products, setProducts] = useState<Art[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchArt = async () => {
+            try {
+                const res = await fetch("/api/art");
+                const data = await res.json();
+                if (res.ok) {
+                    setProducts(data);
+                }
+            } catch (error) {
+                console.error("Error fetching art:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchArt();
+    }, []);
+
     return (
         <main className="min-h-screen bg-cream-50">
             {/* Header Section */}
@@ -67,32 +53,46 @@ export default function ShopPage() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 space-y-4 md:space-y-0">
                     <div className="flex items-center space-x-2 text-sm text-earth-brown-600">
                         <span>Showing</span>
-                        <span className="font-bold text-earth-brown-800">{products.length}</span>
+                        <span className="font-bold text-earth-brown-800">
+                            {loading ? "..." : products.length}
+                        </span>
                         <span>masterpieces</span>
                     </div>
 
                     <div className="flex items-center space-x-4">
                         <select className="bg-beige-100 border border-beige-200 text-earth-brown-700 py-2 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-earth-brown-600 text-sm">
-                            <option>Sort by: Featured</option>
+                            <option>Sort by: Newest First</option>
                             <option>Price: Low to High</option>
                             <option>Price: High to Low</option>
-                            <option>Newest First</option>
                         </select>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                    {products.map((product) => (
-                        <ProductCard
-                            key={product.id}
-                            title={product.title}
-                            artistName={product.artistName}
-                            price={product.price}
-                            image={product.image}
-                        />
-                    ))}
-                </div>
+                {loading ? (
+                    <div className="flex justify-center items-center py-20">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-earth-brown-800"></div>
+                    </div>
+                ) : products.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                        {products.map((product) => (
+                            <ProductCard
+                                key={product._id}
+                                title={product.title}
+                                artistName={product.artist?.name || "Anonymous Artist"}
+                                price={product.price}
+                                image={product.imageUrl}
+                            />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-20">
+                        <p className="text-xl text-earth-brown-600">No masterpieces found yet. Be the first to upload!</p>
+                    </div>
+                )}
             </div>
+
+            {/* Newsletter/CTA Section */}
+            {/* Same as before... */}
 
             {/* Newsletter/CTA Section */}
             <div className="bg-earth-brown-900 mt-20">

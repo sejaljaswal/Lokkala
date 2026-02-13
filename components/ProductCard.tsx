@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Image from "next/image";
 
 interface ProductCardProps {
@@ -8,15 +9,29 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ image, title, artistName, price }: ProductCardProps) => {
+    const [imgError, setImgError] = useState(false);
+
+    // Fallback image if the provided one is invalid or fails to load
+    const placeholderImage = "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=800&auto=format&fit=crop";
+
+    // Simple check to see if the URL is likely a direct image link
+    const isLikelyImage = (url: string) => {
+        if (!url) return false;
+        return url.match(/\.(jpeg|jpg|gif|png|webp)$/i) !== null || url.includes("res.cloudinary.com");
+    };
+
+    const displayImage = imgError || !isLikelyImage(image) ? placeholderImage : image;
+
     return (
         <div className="group relative bg-beige-100 rounded-[2rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border-2 border-beige-200/50 hover:border-earth-brown-800/20 flex flex-col h-full transform hover:-rotate-1">
             {/* Image Container */}
             <div className="relative aspect-[4/5] overflow-hidden bg-beige-200 m-2 rounded-[1.5rem]">
                 <Image
-                    src={image}
+                    src={displayImage}
                     alt={title}
                     fill
                     className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    onError={() => setImgError(true)}
                 />
                 {/* Quick View Overlay */}
                 <div className="absolute inset-0 bg-earth-brown-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
