@@ -51,16 +51,6 @@ const ProfileCard = ({ avatar, name, bio, role }: ProfileProps) => {
                             "{bio}"
                         </p>
                     </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-4 pt-4">
-                        <button className="flex-1 bg-earth-brown-800 text-cream-50 py-3 rounded-xl font-bold shadow-lg hover:bg-earth-brown-900 transition-all hover:shadow-beige-200">
-                            Follow
-                        </button>
-                        <button className="flex-1 bg-cream-50 text-earth-brown-800 border border-beige-200 py-3 rounded-xl font-bold hover:bg-beige-200 transition-all">
-                            Message
-                        </button>
-                    </div>
                 </div>
             </div>
         </div>
