@@ -25,7 +25,8 @@ export default function LoginPage() {
             const data = await res.json();
 
             if (res.ok) {
-                router.push("/dashboard");
+                router.push("/");
+                window.location.href = "/"; // Force full page reload to update navbar
             } else {
                 alert(data.message || "Invalid credentials");
             }

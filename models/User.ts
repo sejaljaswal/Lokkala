@@ -23,6 +23,14 @@ const UserSchema = new Schema(
             enum: ["artist", "buyer"],
             default: "buyer",
         },
+        bio: {
+            type: String,
+            default: "",
+        },
+        avatar: {
+            type: String,
+            default: "https://images.unsplash.com/photo-1511367461989-f85a21fda167?q=80&w=800&auto=format&fit=crop",
+        },
     },
     {
         timestamps: true,

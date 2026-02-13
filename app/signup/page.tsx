@@ -31,13 +31,9 @@ export default function SignupPage() {
             const data = await res.json();
 
             if (res.ok) {
-                // Automatically log them in or redirect to login
-                // For now, redirect to login to ensure they know their credentials work
-                // User asked for /dashboard, so let's try direct to dashboard
-                // Note: Signup alone doesn't set the cookie in our current API, 
-                // but usually we'd want them to login. 
-                // Let's stick to the user's request: redirect to /dashboard
-                router.push("/dashboard");
+                // User is now automatically logged in via cookie
+                router.push("/");
+                window.location.href = "/"; // Force full page reload to update navbar
             } else {
                 alert(data.message || "Something went wrong during signup");
             }

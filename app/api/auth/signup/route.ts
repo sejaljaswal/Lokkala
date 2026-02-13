@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 export async function POST(req: Request) {
     try {
@@ -38,7 +39,20 @@ export async function POST(req: Request) {
             role: role.toLowerCase(), // ensuring lowercase for enum consistency
         });
 
-        return NextResponse.json(
+        // 6. Generate JWT Token and auto-login the user
+        const JWT_SECRET = process.env.JWT_SECRET;
+        if (!JWT_SECRET) {
+            throw new Error("JWT_SECRET is not defined");
+        }
+
+        const token = jwt.sign(
+            { id: newUser._id, role: newUser.role },
+            JWT_SECRET,
+            { expiresIn: "7d" }
+        );
+
+        // 7. Create Response and Set Cookie
+        const response = NextResponse.json(
             {
                 message: "User registered successfully",
                 user: {
@@ -50,6 +64,18 @@ export async function POST(req: Request) {
             },
             { status: 201 }
         );
+
+        // Set HTTP-Only Cookie
+        response.cookies.set({
+            name: "token",
+            value: token,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            maxAge: 60 * 60 * 24 * 7, // 7 days in seconds
+            path: "/",
+        });
+
+        return response;
     } catch (error: any) {
         console.error("Signup Error:", error);
         return NextResponse.json(

@@ -1,17 +1,58 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const router = useRouter();
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const response = await fetch("/api/auth/status", {
+                    credentials: 'include',
+                });
+                const data = await response.json();
+                setIsAuthenticated(data.isAuthenticated);
+            } catch (error) {
+                setIsAuthenticated(false);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        checkAuth();
+    }, []);
+
+    const handleLogout = async () => {
+        try {
+            const response = await fetch("/api/auth/logout", {
+                method: "POST",
+            });
+
+            if (response.ok) {
+                setIsAuthenticated(false);
+                router.push("/");
+            }
+        } catch (error) {
+            console.error("Logout error:", error);
+        }
+    };
 
     const navLinks = [
         { name: "Home", href: "/" },
         { name: "Shop", href: "/shop" },
-        { name: "Upload Art", href: "/upload" },
-        { name: "Dashboard", href: "/dashboard" },
-        { name: "Login", href: "/login" },
+        ...(isAuthenticated
+            ? [
+                { name: "Upload Art", href: "/upload" },
+                { name: "Dashboard", href: "/dashboard" },
+                { name: "Profile", href: "/profile" },
+            ]
+            : []),
     ];
 
     return (
@@ -28,25 +69,33 @@ const Navbar = () => {
                     {/* Desktop Navigation */}
                     <div className="hidden md:flex space-x-8 items-center">
                         {navLinks.map((link) => (
-                            link.name === "Login" ? (
-                                <Link
-                                    key={link.name}
-                                    href={link.href}
-                                    className="bg-earth-brown-800 text-cream-50 px-5 py-2 rounded-full font-medium hover:bg-earth-brown-900 transition-all duration-300 shadow-md hover:shadow-beige-200"
+                            <Link
+                                key={link.name}
+                                href={link.href}
+                                className="text-earth-brown-800 hover:text-earth-brown-600 font-medium transition-colors duration-200 relative group"
+                            >
+                                {link.name}
+                                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-earth-brown-600 transition-all duration-300 group-hover:w-full"></span>
+                            </Link>
+                        ))}
+                        
+                        {!loading && (
+                            isAuthenticated ? (
+                                <button
+                                    onClick={handleLogout}
+                                    className="bg-red-600 text-cream-50 px-5 py-2 rounded-full font-medium hover:bg-red-700 transition-all duration-300 shadow-md hover:shadow-beige-200"
                                 >
-                                    {link.name}
-                                </Link>
+                                    Logout
+                                </button>
                             ) : (
                                 <Link
-                                    key={link.name}
-                                    href={link.href}
-                                    className="text-earth-brown-800 hover:text-earth-brown-600 font-medium transition-colors duration-200 relative group"
+                                    href="/login"
+                                    className="bg-earth-brown-800 text-cream-50 px-5 py-2 rounded-full font-medium hover:bg-earth-brown-900 transition-all duration-300 shadow-md hover:shadow-beige-200"
                                 >
-                                    {link.name}
-                                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-earth-brown-600 transition-all duration-300 group-hover:w-full"></span>
+                                    Login
                                 </Link>
                             )
-                        ))}
+                        )}
                     </div>
 
                     {/* Mobile menu button */}
@@ -78,15 +127,34 @@ const Navbar = () => {
                         <Link
                             key={link.name}
                             href={link.href}
-                            className={`block px-3 py-2 rounded-md text-base font-medium transition-all ${link.name === "Login"
-                                ? "bg-earth-brown-800 text-cream-50 hover:bg-earth-brown-900 mt-4 mx-3 text-center"
-                                : "text-earth-brown-800 hover:text-earth-brown-600 hover:bg-beige-200"
-                                }`}
+                            className="block px-3 py-2 rounded-md text-base font-medium transition-all text-earth-brown-800 hover:text-earth-brown-600 hover:bg-beige-200"
                             onClick={() => setIsOpen(false)}
                         >
                             {link.name}
                         </Link>
                     ))}
+                    
+                    {!loading && (
+                        isAuthenticated ? (
+                            <button
+                                onClick={() => {
+                                    handleLogout();
+                                    setIsOpen(false);
+                                }}
+                                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium bg-red-600 text-cream-50 hover:bg-red-700 mt-4 text-center"
+                            >
+                                Logout
+                            </button>
+                        ) : (
+                            <Link
+                                href="/login"
+                                className="block px-3 py-2 rounded-md text-base font-medium bg-earth-brown-800 text-cream-50 hover:bg-earth-brown-900 mt-4 text-center"
+                                onClick={() => setIsOpen(false)}
+                            >
+                                Login
+                            </Link>
+                        )
+                    )}
                 </div>
             </div>
         </nav>
