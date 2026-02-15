@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 
@@ -39,6 +41,11 @@ export default function Home() {
               alt="Tribal Art Banner"
               fill
               className="object-cover"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+              }}
+              unoptimized={true}
             />
           </div>
         </div>

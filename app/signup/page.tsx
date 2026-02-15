@@ -3,8 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/Toast";
 
 export default function SignupPage() {
+    const { showToast } = useToast();
     const router = useRouter();
     const [role, setRole] = useState<"Artist" | "Buyer">("Buyer");
     const [name, setName] = useState("");
@@ -35,11 +37,11 @@ export default function SignupPage() {
                 router.push("/");
                 window.location.href = "/"; // Force full page reload to update navbar
             } else {
-                alert(data.message || "Something went wrong during signup");
+                showToast(data.message || "Something went wrong during signup", "error");
             }
         } catch (error) {
             console.error("Signup error:", error);
-            alert("An error occurred. Please try again.");
+            showToast("An error occurred. Please try again.", "error");
         } finally {
             setLoading(false);
         }

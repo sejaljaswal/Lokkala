@@ -31,29 +31,11 @@ const UserSchema = new Schema(
             type: String,
             default: "https://images.unsplash.com/photo-1511367461989-f85a21fda167?q=80&w=800&auto=format&fit=crop",
         },
-        // Alias for profileImage (avatar serves as the profile image)
-        profileImage: {
-            type: String,
-            default: "https://images.unsplash.com/photo-1511367461989-f85a21fda167?q=80&w=800&auto=format&fit=crop",
-        },
     },
     {
         timestamps: true,
     }
 );
-
-// Virtual to sync avatar and profileImage
-UserSchema.pre("save", function (next) {
-    // If profileImage is set but avatar is not, sync them
-    if (this.profileImage && !this.avatar) {
-        this.avatar = this.profileImage;
-    }
-    // If avatar is set but profileImage is not, sync them
-    if (this.avatar && !this.profileImage) {
-        this.profileImage = this.avatar;
-    }
-    next();
-});
 
 // Prevent re-compiling the model if it already exists
 const User = models.User || model("User", UserSchema);

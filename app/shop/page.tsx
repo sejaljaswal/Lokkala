@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import ProductCard from "@/components/ProductCard";
+import { ProductCardSkeleton } from "@/components/Skeleton";
 
 interface Art {
     _id: string;
@@ -15,6 +16,7 @@ interface Art {
 export default function ShopPage() {
     const [products, setProducts] = useState<Art[]>([]);
     const [loading, setLoading] = useState(true);
+    const [sortOption, setSortOption] = useState("newest");
 
     useEffect(() => {
         const fetchArt = async () => {
@@ -33,6 +35,19 @@ export default function ShopPage() {
 
         fetchArt();
     }, []);
+
+    // Sort products based on selected option
+    const sortedProducts = [...products].sort((a, b) => {
+        switch (sortOption) {
+            case "price-low":
+                return a.price - b.price;
+            case "price-high":
+                return b.price - a.price;
+            case "newest":
+            default:
+                return 0; // Keep original order (newest from API)
+        }
+    });
 
     return (
         <main className="min-h-screen bg-cream-50">
@@ -60,23 +75,30 @@ export default function ShopPage() {
                     </div>
 
                     <div className="flex items-center space-x-4">
-                        <select className="bg-beige-100 border border-beige-200 text-earth-brown-700 py-2 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-earth-brown-600 text-sm">
-                            <option>Sort by: Newest First</option>
-                            <option>Price: Low to High</option>
-                            <option>Price: High to Low</option>
+                        <select 
+                            className="bg-beige-100 border border-beige-200 text-earth-brown-700 py-2 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-earth-brown-600 text-sm"
+                            value={sortOption}
+                            onChange={(e) => setSortOption(e.target.value)}
+                        >
+                            <option value="newest">Sort by: Newest First</option>
+                            <option value="price-low">Price: Low to High</option>
+                            <option value="price-high">Price: High to Low</option>
                         </select>
                     </div>
                 </div>
 
                 {loading ? (
-                    <div className="flex justify-center items-center py-20">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-earth-brown-800"></div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                        {[...Array(8)].map((_, index) => (
+                            <ProductCardSkeleton key={index} />
+                        ))}
                     </div>
                 ) : products.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                        {products.map((product) => (
+                        {sortedProducts.map((product) => (
                             <ProductCard
                                 key={product._id}
+                                id={product._id}
                                 title={product.title}
                                 artistName={product.artist?.name || "Anonymous Artist"}
                                 price={product.price}

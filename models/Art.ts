@@ -12,6 +12,14 @@ const ArtSchema = new Schema(
             type: String,
             trim: true,
         },
+        dimensions: {
+            type: String,
+            trim: true,
+        },
+        material: {
+            type: String,
+            trim: true,
+        },
         price: {
             type: Number,
             required: [true, "Please provide a price"],

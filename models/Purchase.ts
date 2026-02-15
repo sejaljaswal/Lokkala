@@ -28,6 +28,33 @@ const PurchaseSchema = new Schema(
             enum: ["pending", "completed", "cancelled"],
             default: "completed",
         },
+        shippingStatus: {
+            type: String,
+            enum: ["processing", "shipped", "delivered"],
+            default: "processing",
+        },
+        estimatedDelivery: {
+            type: Date,
+            default: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+        },
+        deliveredAt: {
+            type: Date,
+            default: null,
+        },
+        shippingAddress: {
+            fullName: String,
+            phone: String,
+            addressLine1: String,
+            addressLine2: String,
+            city: String,
+            state: String,
+            pincode: String,
+        },
+        paymentMethod: {
+            type: String,
+            enum: ["cod", "online"],
+            default: "cod",
+        },
     },
     {
         timestamps: true,

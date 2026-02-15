@@ -23,7 +23,7 @@ export async function POST(req: Request) {
         const artistId = decoded.id;
 
         // Use JSON for data
-        const { title, description, price, category, imageUrl } = await req.json();
+        const { title, description, price, category, imageUrl, dimensions, material } = await req.json();
 
         if (!title || !price || !category || !imageUrl) {
             return NextResponse.json(
@@ -40,6 +40,8 @@ export async function POST(req: Request) {
             price: Number(price),
             category,
             imageUrl,
+            dimensions,
+            material,
             artist: artistId,
         });
 

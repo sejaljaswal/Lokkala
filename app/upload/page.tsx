@@ -2,13 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/Toast";
 
 export default function UploadArtPage() {
     const router = useRouter();
+    const { showToast } = useToast();
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [price, setPrice] = useState("");
     const [category, setCategory] = useState("Painting");
+    const [dimensions, setDimensions] = useState("");
+    const [material, setMaterial] = useState("");
     const [image, setImage] = useState<File | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -28,7 +32,7 @@ export default function UploadArtPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!image) {
-            alert("Please select an image");
+            showToast("Please select an image", "error");
             return;
         }
         setLoading(true);
@@ -61,20 +65,22 @@ export default function UploadArtPage() {
                     price,
                     category,
                     imageUrl,
+                    dimensions,
+                    material,
                 }),
             });
 
             const data = await res.json();
 
             if (res.ok) {
-                alert("Artwork uploaded successfully!");
+                showToast("Artwork uploaded successfully!", "success");
                 router.push("/dashboard");
             } else {
-                alert(data.message || "Failed to upload artwork details");
+                showToast(data.message || "Failed to upload artwork details", "error");
             }
         } catch (error: any) {
             console.error("Upload error:", error);
-            alert(error.message || "An error occurred. Please try again.");
+            showToast(error.message || "An error occurred. Please try again.", "error");
         } finally {
             setLoading(false);
         }
@@ -132,7 +138,7 @@ export default function UploadArtPage() {
 
                                 <div>
                                     <label htmlFor="price" className="block text-sm font-semibold mb-1">
-                                        Price ($)
+                                        Price (₹)
                                     </label>
                                     <input
                                         type="number"
@@ -142,6 +148,34 @@ export default function UploadArtPage() {
                                         placeholder="2500"
                                         value={price}
                                         onChange={(e) => setPrice(e.target.value)}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label htmlFor="dimensions" className="block text-sm font-semibold mb-1">
+                                        Dimensions (Optional)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="dimensions"
+                                        className="w-full px-4 py-3 rounded-xl border border-beige-200 focus:ring-2 focus:ring-earth-brown-600 focus:border-earth-brown-600 transition-all outline-none bg-cream-50/50 text-earth-brown-900"
+                                        placeholder="e.g., 24x36 inches"
+                                        value={dimensions}
+                                        onChange={(e) => setDimensions(e.target.value)}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label htmlFor="material" className="block text-sm font-semibold mb-1">
+                                        Material (Optional)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="material"
+                                        className="w-full px-4 py-3 rounded-xl border border-beige-200 focus:ring-2 focus:ring-earth-brown-600 focus:border-earth-brown-600 transition-all outline-none bg-cream-50/50 text-earth-brown-900"
+                                        placeholder="e.g., Canvas, Oil Paint"
+                                        value={material}
+                                        onChange={(e) => setMaterial(e.target.value)}
                                     />
                                 </div>
                             </div>

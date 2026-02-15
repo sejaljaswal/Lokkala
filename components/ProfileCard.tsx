@@ -11,7 +11,7 @@ const ProfileCard = ({ avatar, name, bio, role }: ProfileProps) => {
     return (
         <div className="bg-beige-100 rounded-[2.5rem] shadow-xl border-2 border-beige-200/50 overflow-hidden max-w-2xl mx-auto transform -rotate-1">
             {/* Cover Backdrop */}
-            <div className="h-40 bg-gradient-to-br from-earth-brown-700 to-earth-brown-900 tribal-pattern"></div>
+            <div className="h-40 bg-linear-to-br from-earth-brown-700 to-earth-brown-900 tribal-pattern"></div>
 
             <div className="px-8 pb-8">
                 <div className="relative flex justify-between items-end -mt-16 mb-6">
@@ -22,6 +22,11 @@ const ProfileCard = ({ avatar, name, bio, role }: ProfileProps) => {
                             alt={name}
                             fill
                             className="object-cover"
+                            onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                            }}
+                            unoptimized={true}
                         />
                     </div>
 
@@ -48,8 +53,18 @@ const ProfileCard = ({ avatar, name, bio, role }: ProfileProps) => {
                     <div className="bg-cream-50/50 rounded-2xl p-6 border border-beige-200">
                         <h3 className="text-sm font-bold text-earth-brown-400 uppercase tracking-widest mb-2">About</h3>
                         <p className="text-earth-brown-800 leading-relaxed text-lg italic">
-                            "{bio}"
+                            &quot;{bio}&quot;
                         </p>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-4 pt-4">
+                        <button className="flex-1 bg-earth-brown-800 text-cream-50 py-3 rounded-xl font-bold shadow-lg hover:bg-earth-brown-900 transition-all hover:shadow-beige-200">
+                            Follow
+                        </button>
+                        <button className="flex-1 bg-cream-50 text-earth-brown-800 border border-beige-200 py-3 rounded-xl font-bold hover:bg-beige-200 transition-all">
+                            Message
+                        </button>
                     </div>
                 </div>
             </div>

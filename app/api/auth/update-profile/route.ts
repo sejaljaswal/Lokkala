@@ -27,7 +27,7 @@ export async function PATCH(req: Request) {
 
         // Get update data from request
         const updates = await req.json();
-        const { role, bio, avatar, profileImage, name } = updates;
+        const { role, bio, avatar, name } = updates;
 
         // Connect to database
         await dbConnect();
@@ -44,14 +44,7 @@ export async function PATCH(req: Request) {
         const updateData: any = {};
         if (name) updateData.name = name;
         if (bio !== undefined) updateData.bio = bio;
-        
-        // Handle avatar/profileImage (they're synced)
-        const imageUrl = avatar || profileImage;
-        if (imageUrl) {
-            updateData.avatar = imageUrl;
-            updateData.profileImage = imageUrl;
-        }
-        
+        if (avatar) updateData.avatar = avatar;
         if (role) updateData.role = role.toLowerCase();
 
         // Update user

@@ -81,6 +81,7 @@ export default function DashboardPage() {
                                     {artistData.listings.map((item) => (
                                         <ProductCard
                                             key={item.id}
+                                            id={item.id.toString()}
                                             title={item.title}
                                             artistName={item.artistName}
                                             price={item.price}
@@ -109,7 +110,7 @@ export default function DashboardPage() {
                                                     <td className="px-6 py-5 font-medium text-earth-brown-900">{order.id}</td>
                                                     <td className="px-6 py-5 text-earth-brown-600">{order.date}</td>
                                                     <td className="px-6 py-5 text-earth-brown-800 font-semibold">{order.item}</td>
-                                                    <td className="px-6 py-5 text-right font-extrabold text-earth-brown-900">${order.price}</td>
+                                                    <td className="px-6 py-5 text-right font-extrabold text-earth-brown-900">₹{order.price}</td>
                                                     <td className="px-6 py-5">
                                                         <span className={`block w-fit mx-auto px-3 py-1 rounded-full text-xs font-bold ${order.status === "Delivered" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
                                                             }`}>
