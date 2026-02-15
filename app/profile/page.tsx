@@ -57,6 +57,9 @@ export default function ProfilePage() {
     const [artistStats, setArtistStats] = useState<ArtistStats | null>(null);
     const [buyerStats, setBuyerStats] = useState<BuyerStats | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isEditingBio, setIsEditingBio] = useState(false);
+    const [bioText, setBioText] = useState("");
+    const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
     const router = useRouter();
     const { showToast } = useToast();
 
@@ -101,6 +104,88 @@ export default function ProfilePage() {
 
         fetchData();
     }, [router]);
+
+    const handleEditBio = () => {
+        setBioText(user?.bio || "");
+        setIsEditingBio(true);
+    };
+
+    const handleSaveBio = async () => {
+        try {
+            const response = await fetch("/api/auth/update-profile", {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ bio: bioText }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setUser(data.user);
+                setIsEditingBio(false);
+                showToast("Bio updated successfully!", "success");
+            } else {
+                showToast("Failed to update bio", "error");
+            }
+        } catch (error) {
+            console.error("Error updating bio:", error);
+            showToast("Error updating bio", "error");
+        }
+    };
+
+    const handleUploadAvatar = () => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.onchange = async (e) => {
+            const file = (e.target as HTMLInputElement).files?.[0];
+            if (!file) return;
+
+            setIsUploadingAvatar(true);
+            try {
+                // Upload image to cloudinary
+                const formData = new FormData();
+                formData.append("file", file);
+
+                const uploadResponse = await fetch("/api/upload-image", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                if (!uploadResponse.ok) {
+                    showToast("Failed to upload image", "error");
+                    return;
+                }
+
+                const uploadData = await uploadResponse.json();
+                const imageUrl = uploadData.secure_url;
+
+                // Update profile with new avatar
+                const updateResponse = await fetch("/api/auth/update-profile", {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ avatar: imageUrl }),
+                });
+
+                if (updateResponse.ok) {
+                    const data = await updateResponse.json();
+                    setUser(data.user);
+                    showToast("Profile picture updated successfully!", "success");
+                } else {
+                    showToast("Failed to update profile picture", "error");
+                }
+            } catch (error) {
+                console.error("Error uploading avatar:", error);
+                showToast("Error uploading image", "error");
+            } finally {
+                setIsUploadingAvatar(false);
+            }
+        };
+        input.click();
+    };
 
     if (loading) {
         return (
@@ -158,7 +243,55 @@ export default function ProfilePage() {
                     name={user.name}
                     bio={user.bio || "No bio yet. Share your story with the community!"}
                     role={user.role === "artist" ? "Artist" : "Buyer"}
+                    isOwnProfile={true}
+                    onEditBio={handleEditBio}
+                    onUploadAvatar={handleUploadAvatar}
                 />
+
+                {/* Upload Loading Indicator */}
+                {isUploadingAvatar && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                        <div className="bg-cream-50 rounded-3xl p-8 flex flex-col items-center gap-4">
+                            <div className="w-16 h-16 border-4 border-earth-brown-800 border-t-transparent rounded-full animate-spin"></div>
+                            <p className="text-earth-brown-800 font-bold">Uploading profile picture...</p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Bio Edit Modal */}
+                {isEditingBio && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-cream-50 rounded-3xl p-8 max-w-2xl w-full border-2 border-beige-200 shadow-2xl">
+                            <h2 className="text-2xl font-extrabold text-earth-brown-800 mb-6">Edit Your Bio</h2>
+                            
+                            <textarea
+                                value={bioText}
+                                onChange={(e) => setBioText(e.target.value)}
+                                className="w-full h-40 p-4 rounded-xl border-2 border-beige-200 bg-beige-100 text-earth-brown-800 focus:outline-none focus:border-earth-brown-800 resize-none"
+                                placeholder="Share your story with the community..."
+                                maxLength={500}
+                            />
+                            <p className="text-sm text-earth-brown-600 mt-2 text-right">
+                                {bioText.length}/500 characters
+                            </p>
+                            
+                            <div className="flex gap-4 mt-6">
+                                <button
+                                    onClick={() => setIsEditingBio(false)}
+                                    className="flex-1 bg-cream-50 text-earth-brown-800 border-2 border-beige-200 py-3 rounded-xl font-bold hover:bg-beige-200 transition-all"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleSaveBio}
+                                    className="flex-1 bg-earth-brown-800 text-cream-50 py-3 rounded-xl font-bold shadow-lg hover:bg-earth-brown-900 transition-all"
+                                >
+                                    Save Bio
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Orders Button */}
                 <div className="mt-8 flex justify-center">
