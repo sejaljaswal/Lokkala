@@ -3,36 +3,67 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { getWishlist, removeFromWishlist, type WishlistItem } from "@/lib/wishlist";
 import { addToCart as addItemToCart } from "@/lib/cart";
+import { useToast } from "@/components/Toast";
 import { ProductCardSkeleton } from "@/components/Skeleton";
 
 export default function WishlistPage() {
     const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const router = useRouter();
+    const { showToast } = useToast();
 
     useEffect(() => {
-        const loadWishlist = () => {
-            setWishlist(getWishlist());
-            setIsLoading(false);
+        const loadWishlist = async () => {
+            try {
+                // Check authentication
+                const authRes = await fetch("/api/auth/me");
+                if (!authRes.ok) {
+                    setIsAuthenticated(false);
+                    setIsLoading(false);
+                    return;
+                }
+                
+                setIsAuthenticated(true);
+                const items = await getWishlist();
+                setWishlist(items);
+            } catch (error) {
+                console.error("Error loading wishlist:", error);
+                setIsAuthenticated(false);
+            } finally {
+                setIsLoading(false);
+            }
         };
+        
         loadWishlist();
-        window.addEventListener("wishlistUpdated", loadWishlist);
-        return () => window.removeEventListener("wishlistUpdated", loadWishlist);
+        
+        const handleWishlistUpdate = () => {
+            loadWishlist();
+        };
+        
+        window.addEventListener("wishlistUpdated", handleWishlistUpdate);
+        return () => window.removeEventListener("wishlistUpdated", handleWishlistUpdate);
     }, []);
 
-    const handleRemove = (id: string) => {
-        removeFromWishlist(id);
+    const handleRemove = async (id: string) => {
+        await removeFromWishlist(id);
     };
 
-    const addToCart = (item: WishlistItem) => {
-        addItemToCart({
-            id: item.id,
-            title: item.title,
-            artistName: item.artistName,
-            price: item.price,
-            image: item.image,
-        });
+    const addToCart = async (id: string, item: WishlistItem) => {
+        try {
+            await addItemToCart(id);
+            showToast(`${item.title} added to cart!`, "success");
+        } catch (error: any) {
+            if (error.message.includes("log in")) {
+                showToast("Please log in to add items to cart", "error");
+                router.push("/login");
+            } else {
+                showToast("Failed to add to cart", "error");
+            }
+        }
     };
 
     return (
@@ -44,6 +75,22 @@ export default function WishlistPage() {
                         {[...Array(4)].map((_, i) => (
                             <ProductCardSkeleton key={i} />
                         ))}
+                    </div>
+                ) : !isAuthenticated ? (
+                    <div className="text-center py-20">
+                        <svg className="mx-auto h-24 w-24 text-beige-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <h3 className="mt-6 text-2xl font-bold text-earth-brown-800">Please log in to view your wishlist</h3>
+                        <p className="mt-2 text-earth-brown-600">You need to be logged in to save your favorite items</p>
+                        <div className="mt-8 flex gap-4 justify-center">
+                            <Link href="/login" className="inline-block bg-earth-brown-800 text-cream-50 px-8 py-3 rounded-full font-semibold hover:bg-earth-brown-900 transition-all duration-300 shadow-lg">
+                                Log In
+                            </Link>
+                            <Link href="/signup" className="inline-block bg-beige-200 text-earth-brown-800 px-8 py-3 rounded-full font-semibold hover:bg-beige-300 transition-all duration-300 border-2 border-beige-300">
+                                Sign Up
+                            </Link>
+                        </div>
                     </div>
                 ) : wishlist.length === 0 ? (
                     <div className="text-center py-20">
@@ -84,13 +131,7 @@ export default function WishlistPage() {
                                         <span className="text-lg font-extrabold text-earth-brown-900">₹{item.price.toLocaleString()}</span>
                                         <div className="flex items-center gap-2">
                                             <button
-                                                onClick={() => addToCart({
-                                                    id: item.id,
-                                                    title: item.title,
-                                                    artistName: item.artistName,
-                                                    price: item.price,
-                                                    image: item.image,
-                                                })}
+                                                onClick={() => addToCart(item.id, item)}
                                                 className="group/cart relative p-2 rounded-full bg-cream-50 text-earth-brown-600 hover:bg-earth-brown-800 hover:text-cream-50 transition-colors duration-300 border border-beige-200"
                                             >
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

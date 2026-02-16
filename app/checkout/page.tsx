@@ -59,13 +59,24 @@ export default function CheckoutPage() {
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     useEffect(() => {
-        const items = getCart();
-        if (items.length === 0) {
-            router.push("/cart");
-            return;
-        }
-        setCartItems(items);
-        setLoading(false);
+        const loadCart = async () => {
+            try {
+                const items = await getCart();
+                if (items.length === 0) {
+                    router.push("/cart");
+                    return;
+                }
+                setCartItems(items);
+            } catch (error) {
+                console.error("Error loading cart:", error);
+                showToast("Failed to load cart", "error");
+                router.push("/cart");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadCart();
 
         // Load Razorpay script
         const script = document.createElement("script");
@@ -84,7 +95,7 @@ export default function CheckoutPage() {
                 document.body.removeChild(script);
             }
         };
-    }, [router]);
+    }, [router, showToast]);
 
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
@@ -151,7 +162,7 @@ export default function CheckoutPage() {
             }
 
             // Clear cart and redirect
-            clearCart();
+            await clearCart();
             router.push("/orders?success=true");
         } finally {
             setSubmitting(false);
@@ -212,7 +223,7 @@ export default function CheckoutPage() {
                         }
 
                         // Clear cart and redirect
-                        clearCart();
+                        await clearCart();
                         router.push("/orders?success=true");
                     } catch (error) {
                         console.error("Payment verification error:", error);
@@ -332,7 +343,7 @@ export default function CheckoutPage() {
                                                 onChange={handleInputChange}
                                                 className={`w-full px-4 py-3 rounded-xl border-2 ${
                                                     errors.fullName ? "border-red-500" : "border-beige-300"
-                                                } focus:border-earth-brown-600 focus:outline-none transition-colors bg-cream-50`}
+                                                } focus:border-earth-brown-600 focus:outline-none transition-colors bg-cream-50 text-earth-brown-800`}
                                                 placeholder="Enter your full name"
                                             />
                                             {errors.fullName && (
@@ -351,7 +362,7 @@ export default function CheckoutPage() {
                                                 onChange={handleInputChange}
                                                 className={`w-full px-4 py-3 rounded-xl border-2 ${
                                                     errors.phone ? "border-red-500" : "border-beige-300"
-                                                } focus:border-earth-brown-600 focus:outline-none transition-colors bg-cream-50`}
+                                                } focus:border-earth-brown-600 focus:outline-none transition-colors bg-cream-50 text-earth-brown-800`}
                                                 placeholder="10-digit mobile number"
                                                 maxLength={10}
                                             />
@@ -372,7 +383,7 @@ export default function CheckoutPage() {
                                             onChange={handleInputChange}
                                             className={`w-full px-4 py-3 rounded-xl border-2 ${
                                                 errors.addressLine1 ? "border-red-500" : "border-beige-300"
-                                            } focus:border-earth-brown-600 focus:outline-none transition-colors bg-cream-50`}
+                                            } focus:border-earth-brown-600 focus:outline-none transition-colors bg-cream-50 text-earth-brown-800`}
                                             placeholder="House no., Building name"
                                         />
                                         {errors.addressLine1 && (
@@ -389,7 +400,7 @@ export default function CheckoutPage() {
                                             name="addressLine2"
                                             value={formData.addressLine2}
                                             onChange={handleInputChange}
-                                            className="w-full px-4 py-3 rounded-xl border-2 border-beige-300 focus:border-earth-brown-600 focus:outline-none transition-colors bg-cream-50"
+                                            className="w-full px-4 py-3 rounded-xl border-2 border-beige-300 focus:border-earth-brown-600 focus:outline-none transition-colors bg-cream-50 text-earth-brown-800"
                                             placeholder="Road name, Area, Colony (Optional)"
                                         />
                                     </div>
@@ -406,7 +417,7 @@ export default function CheckoutPage() {
                                                 onChange={handleInputChange}
                                                 className={`w-full px-4 py-3 rounded-xl border-2 ${
                                                     errors.city ? "border-red-500" : "border-beige-300"
-                                                } focus:border-earth-brown-600 focus:outline-none transition-colors bg-cream-50`}
+                                                } focus:border-earth-brown-600 focus:outline-none transition-colors bg-cream-50 text-earth-brown-800`}
                                                 placeholder="City"
                                             />
                                             {errors.city && (
@@ -425,7 +436,7 @@ export default function CheckoutPage() {
                                                 onChange={handleInputChange}
                                                 className={`w-full px-4 py-3 rounded-xl border-2 ${
                                                     errors.state ? "border-red-500" : "border-beige-300"
-                                                } focus:border-earth-brown-600 focus:outline-none transition-colors bg-cream-50`}
+                                                } focus:border-earth-brown-600 focus:outline-none transition-colors bg-cream-50 text-earth-brown-800`}
                                                 placeholder="State"
                                             />
                                             {errors.state && (
@@ -444,7 +455,7 @@ export default function CheckoutPage() {
                                                 onChange={handleInputChange}
                                                 className={`w-full px-4 py-3 rounded-xl border-2 ${
                                                     errors.pincode ? "border-red-500" : "border-beige-300"
-                                                } focus:border-earth-brown-600 focus:outline-none transition-colors bg-cream-50`}
+                                                } focus:border-earth-brown-600 focus:outline-none transition-colors bg-cream-50 text-earth-brown-800`}
                                                 placeholder="6-digit PIN"
                                                 maxLength={6}
                                             />

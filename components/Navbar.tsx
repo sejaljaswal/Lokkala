@@ -54,8 +54,9 @@ const Navbar = () => {
 
     // Track cart count
     useEffect(() => {
-        const updateCartCount = () => {
-            setCartCount(getCartCount());
+        const updateCartCount = async () => {
+            const count = await getCartCount();
+            setCartCount(count);
         };
 
         updateCartCount();

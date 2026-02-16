@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { addToCart } from "@/lib/cart";
 import { addToWishlist } from "@/lib/wishlist";
 import { useToast } from "@/components/Toast";
@@ -17,38 +18,48 @@ const ProductCard = ({ id, image, title, artistName, price }: ProductCardProps) 
     const [isAdding, setIsAdding] = useState(false);
     const [isWishAdding, setIsWishAdding] = useState(false);
     const { showToast } = useToast();
+    const router = useRouter();
 
-    const handleAddToWishlist = () => {
+    const handleAddToWishlist = async () => {
+        if (!id) return;
+        
         setIsWishAdding(true);
-        addToWishlist({
-            id: id || `${title}-${artistName}`.replace(/\s+/g, "-").toLowerCase(),
-            title,
-            artistName,
-            price,
-            image: image,
-        });
-        showToast(`${title} added to wishlist!`, "success");
-        setTimeout(() => {
-            setIsWishAdding(false);
-        }, 1000);
+        try {
+            await addToWishlist(id);
+            showToast(`${title} added to wishlist!`, "success");
+        } catch (error: any) {
+            if (error.message.includes("log in")) {
+                showToast("Please log in to add items to wishlist", "error");
+                router.push("/login");
+            } else {
+                showToast("Failed to add to wishlist", "error");
+            }
+        } finally {
+            setTimeout(() => {
+                setIsWishAdding(false);
+            }, 1000);
+        }
     };
 
-    const handleAddToCart = () => {
-        setIsAdding(true);
+    const handleAddToCart = async () => {
+        if (!id) return;
         
-        addToCart({
-            id: id || `${title}-${artistName}`.replace(/\s+/g, "-").toLowerCase(),
-            title,
-            artistName,
-            price,
-            image: image,
-        });
-
-        showToast(`${title} added to cart!`, "success");
-        // Show feedback animation
-        setTimeout(() => {
-            setIsAdding(false);
-        }, 1000);
+        setIsAdding(true);
+        try {
+            await addToCart(id);
+            showToast(`${title} added to cart!`, "success");
+        } catch (error: any) {
+            if (error.message.includes("log in")) {
+                showToast("Please log in to add items to cart", "error");
+                router.push("/login");
+            } else {
+                showToast("Failed to add to cart", "error");
+            }
+        } finally {
+            setTimeout(() => {
+                setIsAdding(false);
+            }, 1000);
+        }
     };
 
     return (

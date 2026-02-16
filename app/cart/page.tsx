@@ -10,14 +10,30 @@ import { CartItemSkeleton } from "@/components/Skeleton";
 export default function CartPage() {
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const router = useRouter();
 
-    // Load cart from localStorage
+    // Load cart from API
     useEffect(() => {
-        const loadCart = () => {
-            const items = getCart();
-            setCartItems(items);
-            setIsLoading(false);
+        const loadCart = async () => {
+            try {
+                // Check authentication
+                const authRes = await fetch("/api/auth/me");
+                if (!authRes.ok) {
+                    setIsAuthenticated(false);
+                    setIsLoading(false);
+                    return;
+                }
+                
+                setIsAuthenticated(true);
+                const items = await getCart();
+                setCartItems(items);
+            } catch (error) {
+                console.error("Error loading cart:", error);
+                setIsAuthenticated(false);
+            } finally {
+                setIsLoading(false);
+            }
         };
 
         loadCart();
@@ -31,13 +47,13 @@ export default function CartPage() {
         return () => window.removeEventListener("cartUpdated", handleCartUpdate);
     }, []);
 
-    const updateQuantity = (id: string, newQuantity: number) => {
+    const updateQuantity = async (id: string, newQuantity: number) => {
         if (newQuantity < 1) return;
-        updateCartItemQuantity(id, newQuantity);
+        await updateCartItemQuantity(id, newQuantity);
     };
 
-    const removeItem = (id: string) => {
-        removeFromCart(id);
+    const removeItem = async (id: string) => {
+        await removeFromCart(id);
     };
 
     const subtotal = cartItems.reduce(
@@ -69,6 +85,43 @@ export default function CartPage() {
                         {[...Array(3)].map((_, i) => (
                             <CartItemSkeleton key={i} />
                         ))}
+                    </div>
+                ) : !isAuthenticated ? (
+                    // Not Logged In State
+                    <div className="text-center py-20">
+                        <svg
+                            className="mx-auto h-24 w-24 text-beige-300"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={1.5}
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                            />
+                        </svg>
+                        <h3 className="mt-6 text-2xl font-bold text-earth-brown-800">
+                            Please log in to view your cart
+                        </h3>
+                        <p className="mt-2 text-earth-brown-600">
+                            You need to be logged in to add items to your cart
+                        </p>
+                        <div className="mt-8 flex gap-4 justify-center">
+                            <Link
+                                href="/login"
+                                className="inline-block bg-earth-brown-800 text-cream-50 px-8 py-3 rounded-full font-semibold hover:bg-earth-brown-900 transition-all duration-300 shadow-lg"
+                            >
+                                Log In
+                            </Link>
+                            <Link
+                                href="/signup"
+                                className="inline-block bg-beige-200 text-earth-brown-800 px-8 py-3 rounded-full font-semibold hover:bg-beige-300 transition-all duration-300 border-2 border-beige-300"
+                            >
+                                Sign Up
+                            </Link>
+                        </div>
                     </div>
                 ) : cartItems.length === 0 ? (
                     // Empty Cart State
