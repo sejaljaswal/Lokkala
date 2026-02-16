@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Art from "@/models/Art";
+import jwt from "jsonwebtoken";
 
 export async function GET(
     request: Request,
@@ -45,10 +46,34 @@ export async function DELETE(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        // Check authentication
+        const token = request.headers.get("cookie")
+            ?.split("; ")
+            .find((row) => row.startsWith("token="))
+            ?.split("=")[1];
+
+        if (!token) {
+            return NextResponse.json(
+                { message: "Unauthorized. Please log in." },
+                { status: 401 }
+            );
+        }
+
+        // Verify JWT and check role
+        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string; role: string };
+        
+        if (decoded.role !== "artist") {
+            return NextResponse.json(
+                { message: "Unauthorized. Only artists can delete artwork." },
+                { status: 403 }
+            );
+        }
+
         const { id } = await params;
         await dbConnect();
 
-        const art = await Art.findByIdAndDelete(id);
+        // Find the artwork and verify ownership
+        const art = await Art.findById(id);
 
         if (!art) {
             return NextResponse.json(
@@ -56,6 +81,16 @@ export async function DELETE(
                 { status: 404 }
             );
         }
+
+        // Verify the artist owns this artwork
+        if (art.artist.toString() !== decoded.id) {
+            return NextResponse.json(
+                { message: "Forbidden. You can only delete your own artwork." },
+                { status: 403 }
+            );
+        }
+
+        await Art.findByIdAndDelete(id);
 
         return NextResponse.json(
             { message: "Artwork deleted successfully" },
@@ -75,9 +110,50 @@ export async function PUT(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        // Check authentication
+        const token = request.headers.get("cookie")
+            ?.split("; ")
+            .find((row) => row.startsWith("token="))
+            ?.split("=")[1];
+
+        if (!token) {
+            return NextResponse.json(
+                { message: "Unauthorized. Please log in." },
+                { status: 401 }
+            );
+        }
+
+        // Verify JWT and check role
+        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string; role: string };
+        
+        if (decoded.role !== "artist") {
+            return NextResponse.json(
+                { message: "Unauthorized. Only artists can edit artwork." },
+                { status: 403 }
+            );
+        }
+
         const { id } = await params;
         const body = await request.json();
         await dbConnect();
+
+        // Find the artwork and verify ownership
+        const existingArt = await Art.findById(id);
+
+        if (!existingArt) {
+            return NextResponse.json(
+                { message: "Artwork not found" },
+                { status: 404 }
+            );
+        }
+
+        // Verify the artist owns this artwork
+        if (existingArt.artist.toString() !== decoded.id) {
+            return NextResponse.json(
+                { message: "Forbidden. You can only edit your own artwork." },
+                { status: 403 }
+            );
+        }
 
         const art = await Art.findByIdAndUpdate(
             id,
@@ -89,7 +165,7 @@ export async function PUT(
                 dimensions: body.dimensions,
                 material: body.material,
             },
-            { new: true, runValidators: true }
+            { returnDocument: 'after', runValidators: true }
         );
 
         if (!art) {

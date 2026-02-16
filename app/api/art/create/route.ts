@@ -18,8 +18,17 @@ export async function POST(req: Request) {
             );
         }
 
-        // Verify JWT to get the user ID
-        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
+        // Verify JWT to get the user ID and role
+        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string; role: string };
+        
+        // Check if user is an artist
+        if (decoded.role !== "artist") {
+            return NextResponse.json(
+                { message: "Unauthorized. Only artists can upload artwork." },
+                { status: 403 }
+            );
+        }
+        
         const artistId = decoded.id;
 
         // Use JSON for data

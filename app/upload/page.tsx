@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
 
@@ -16,6 +16,36 @@ export default function UploadArtPage() {
     const [image, setImage] = useState<File | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [isAuthorized, setIsAuthorized] = useState(false);
+    const [checking, setChecking] = useState(true);
+
+    // Check if user is an artist
+    useEffect(() => {
+        const checkRole = async () => {
+            try {
+                const res = await fetch("/api/auth/me");
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.user.role === "artist") {
+                        setIsAuthorized(true);
+                    } else {
+                        showToast("Only artists can upload artwork", "error");
+                        router.push("/");
+                    }
+                } else {
+                    showToast("Please log in to upload artwork", "error");
+                    router.push("/login");
+                }
+            } catch (error) {
+                console.error("Auth check error:", error);
+                router.push("/");
+            } finally {
+                setChecking(false);
+            }
+        };
+
+        checkRole();
+    }, [router, showToast]);
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -74,7 +104,7 @@ export default function UploadArtPage() {
 
             if (res.ok) {
                 showToast("Artwork uploaded successfully!", "success");
-                router.push("/dashboard");
+                router.push("/profile");
             } else {
                 showToast(data.message || "Failed to upload artwork details", "error");
             }
@@ -85,6 +115,18 @@ export default function UploadArtPage() {
             setLoading(false);
         }
     };
+
+    if (checking) {
+        return (
+            <main className="min-h-screen bg-cream-50 py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+                <div className="text-earth-brown-800 text-xl">Verifying access...</div>
+            </main>
+        );
+    }
+
+    if (!isAuthorized) {
+        return null;
+    }
 
     return (
         <main className="min-h-screen bg-cream-50 py-12 px-4 sm:px-6 lg:px-8">

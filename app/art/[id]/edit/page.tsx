@@ -20,6 +20,8 @@ export default function EditArtPage({ params }: { params: Promise<{ id: string }
     const [imageUrl, setImageUrl] = useState("");
     const router = useRouter();
     const [artId, setArtId] = useState<string>("");
+    const [isAuthorized, setIsAuthorized] = useState(false);
+    const [checking, setChecking] = useState(true);
 
     useEffect(() => {
         params.then((resolvedParams) => {
@@ -27,8 +29,36 @@ export default function EditArtPage({ params }: { params: Promise<{ id: string }
         });
     }, [params]);
 
+    // Check if user is an artist
     useEffect(() => {
-        if (!artId) return;
+        const checkRole = async () => {
+            try {
+                const res = await fetch("/api/auth/me");
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.user.role === "artist") {
+                        setIsAuthorized(true);
+                    } else {
+                        showToast("Only artists can edit artwork", "error");
+                        router.push("/");
+                    }
+                } else {
+                    showToast("Please log in to edit artwork", "error");
+                    router.push("/login");
+                }
+            } catch (error) {
+                console.error("Auth check error:", error);
+                router.push("/");
+            } finally {
+                setChecking(false);
+            }
+        };
+
+        checkRole();
+    }, [router, showToast]);
+
+    useEffect(() => {
+        if (!artId || !isAuthorized) return;
 
         const fetchArt = async () => {
             try {
@@ -59,7 +89,7 @@ export default function EditArtPage({ params }: { params: Promise<{ id: string }
         };
 
         fetchArt();
-    }, [artId, router, showToast]);
+    }, [artId, isAuthorized, router, showToast]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         setFormData({
@@ -98,6 +128,18 @@ export default function EditArtPage({ params }: { params: Promise<{ id: string }
             setSubmitting(false);
         }
     };
+
+    if (checking) {
+        return (
+            <main className="min-h-screen bg-cream-50 py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+                <div className="text-earth-brown-800 text-xl">Verifying access...</div>
+            </main>
+        );
+    }
+
+    if (!isAuthorized) {
+        return null;
+    }
 
     if (loading) {
         return (

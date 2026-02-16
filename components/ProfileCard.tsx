@@ -72,7 +72,7 @@ const ProfileCard = ({ avatar, name, bio, role, isOwnProfile = false, onEditBio,
                     </div>
 
                     {/* Action Buttons */}
-                    {isOwnProfile && role === "Buyer" && (
+                    {isOwnProfile && (
                         <div className="pt-4">
                             <button 
                                 onClick={onEditBio}
