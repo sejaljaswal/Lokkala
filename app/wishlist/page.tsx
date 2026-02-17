@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { getWishlist, removeFromWishlist, type WishlistItem } from "@/lib/wishlist";
-import { addToCart as addItemToCart } from "@/lib/cart";
+import { addItemToCart } from "@/lib/cart";
 import { ProductCardSkeleton } from "@/components/Skeleton";
 
 export default function WishlistPage() {

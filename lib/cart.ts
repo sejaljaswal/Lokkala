@@ -1,4 +1,4 @@
-// Cart utility functions with localStorage persistence
+// Cart utility functions with localStorage persistence - updated v2
 
 export interface CartItem {
     id: string;
@@ -36,8 +36,16 @@ export const saveCart = (cart: CartItem[]): void => {
     }
 };
 
+export interface AddToCartInput {
+    id: string;
+    title: string;
+    artistName: string;
+    price: number;
+    image: string;
+}
+
 // Add item to cart
-export const addToCart = (item: Omit<CartItem, "quantity">): void => {
+export const addItemToCart = (item: AddToCartInput): void => {
     const cart = getCart();
     const existingItemIndex = cart.findIndex((cartItem) => cartItem.id === item.id);
 

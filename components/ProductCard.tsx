@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { addToCart } from "@/lib/cart";
+import { addItemToCart } from "@/lib/cart";
 import { addToWishlist } from "@/lib/wishlist";
 import { useToast } from "@/components/Toast";
 
@@ -36,7 +36,7 @@ const ProductCard = ({ id, image, title, artistName, price }: ProductCardProps) 
     const handleAddToCart = () => {
         setIsAdding(true);
         
-        addToCart({
+        addItemToCart({
             id: id || `${title}-${artistName}`.replace(/\s+/g, "-").toLowerCase(),
             title,
             artistName,

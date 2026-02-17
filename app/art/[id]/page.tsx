@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import ProductCard from "@/components/ProductCard";
 import { ProductDetailSkeleton } from "@/components/Skeleton";
-import { addToCart } from "@/lib/cart";
+import { addItemToCart, AddToCartInput } from "@/lib/cart";
 import { addToWishlist } from "@/lib/wishlist";
 import { useToast } from "@/components/Toast";
 
@@ -70,13 +70,14 @@ export default function ArtDetailPage({ params }: { params: Promise<{ id: string
     const handleAddToCart = () => {
         if (!art) return;
         setIsAdding(true);
-        addToCart({
+        const item: AddToCartInput = {
             id: art._id,
             title: art.title,
             artistName: art.artist.name,
             price: art.price,
             image: art.imageUrl,
-        });
+        };
+        addItemToCart(item);
         showToast(`${art.title} added to cart!`, "success");
         setTimeout(() => setIsAdding(false), 1000);
     };
